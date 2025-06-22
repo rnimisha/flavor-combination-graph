@@ -6,7 +6,7 @@ from load_data import load_data
 nodes_df, edges_df = load_data()
 
 # %%
-print(nodes_df.head())
+print(nodes_df.head(20))
 # %%
 print(edges_df.head())
 # %%
@@ -53,11 +53,15 @@ import numpy as np
 
 mapped["ingredient"][np.int64(5063)]
 mapped["ingredient"][np.int64(6083)]
-# %%
-graph = ingredientCompoundGraph.create_edges(mapped)
-print(graph)
 
 # %%
 111355 * 2
 
+# %%
+ingredientCompoundGraph2 = IngredientCompoundGraph(nodes_df, edges_df)
+
+# %%
+graph = ingredientCompoundGraph2.create()
+# %%
+graph
 # %%

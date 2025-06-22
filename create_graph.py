@@ -24,7 +24,13 @@ class IngredientCompoundGraph:
             }
         return mappings
 
-    def create_edges(self, mappings: Dict[str, Dict[int, int]]):
+    def add_nodes(self, mappings: Dict[str, Dict[int, int]]):
+        for node_type, node_mapping in mappings.items():
+            filtered_nodes = self.nodes_df[self.nodes_df["node_type"] == node_type]
+            num_nodes = len(filtered_nodes)
+            self.data[node_type].num_nodes = num_nodes
+
+    def add_edges(self, mappings: Dict[str, Dict[int, int]]) -> None:
         edge_types = self.edges_df["edge_type"].unique()
 
         for edge_type in edge_types:
@@ -43,10 +49,14 @@ class IngredientCompoundGraph:
 
             self.data[src_node_type, relation, dest_node_type].edge_index = edge_index
 
-            self.data[src_node_type, relation, dest_node_type].score = torch.tensor(
-                filtered_edges["score"].values, dtype=torch.float
+            self.data[src_node_type, relation, dest_node_type].edge_weight = (
+                torch.tensor(filtered_edges["score"].values, dtype=torch.float)
             )
 
         self.data = ToUndirected()(self.data)
 
+    def create(self) -> HeteroData:
+        mappings = self.create_nodes_mapping()
+        self.add_nodes(mappings)
+        self.add_edges(mappings)
         return self.data
