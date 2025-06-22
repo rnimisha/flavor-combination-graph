@@ -40,3 +40,22 @@ print(ingredients["node_id"].unique().shape[0] == len(mapped["ingredient"]))
 print(compounds["node_id"].unique().shape[0] == len(mapped["compound"]))
 
 # %%
+edges_df.head()
+# %%
+edges_types = edges_df["edge_type"].unique()
+print(edges_types)
+# %%
+filtered_ing_ing = edges_df[edges_df["edge_type"] == "ingr-ingr"]
+# %%
+filtered_ing_ing
+# %%
+import numpy as np
+
+mapped["ingredient"][np.int64(5063)]
+mapped["ingredient"][np.int64(6083)]
+# %%
+edge_indexes = ingredientCompoundGraph.create_edges(mapped)
+edge_indexes
+# %%
+edge_indexes.size()
+# %%
