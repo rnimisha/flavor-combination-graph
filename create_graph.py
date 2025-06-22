@@ -3,6 +3,7 @@ from typing import Dict
 import pandas as pd
 import torch
 from torch_geometric.data import HeteroData
+from torch_geometric.transforms import ToUndirected
 
 
 class IngredientCompoundGraph:
@@ -39,4 +40,13 @@ class IngredientCompoundGraph:
             src_nodes = [mappings[src_node_type][id] for id in filtered_edges["id_1"]]
             dest_nodes = [mappings[dest_node_type][id] for id in filtered_edges["id_2"]]
             edge_index = torch.tensor([src_nodes, dest_nodes], dtype=torch.long)
-            return edge_index
+
+            self.data[src_node_type, relation, dest_node_type].edge_index = edge_index
+
+            self.data[src_node_type, relation, dest_node_type].score = torch.tensor(
+                filtered_edges["score"].values, dtype=torch.float
+            )
+
+        self.data = ToUndirected()(self.data)
+
+        return self.data

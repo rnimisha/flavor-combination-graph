@@ -54,8 +54,10 @@ import numpy as np
 mapped["ingredient"][np.int64(5063)]
 mapped["ingredient"][np.int64(6083)]
 # %%
-edge_indexes = ingredientCompoundGraph.create_edges(mapped)
-edge_indexes
+graph = ingredientCompoundGraph.create_edges(mapped)
+print(graph)
+
 # %%
-edge_indexes.size()
+111355 * 2
+
 # %%
