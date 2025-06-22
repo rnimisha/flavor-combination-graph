@@ -1,5 +1,5 @@
 # %% imports
-from create_graph import create_nodes_mapping
+from create_graph import IngredientCompoundGraph
 from load_data import load_data
 
 # %% load data
@@ -16,7 +16,8 @@ print(edges_df.edge_type.value_counts())
 
 
 # %%
-mapped = create_nodes_mapping(nodes_df)
+ingredientCompoundGraph = IngredientCompoundGraph(nodes_df, edges_df)
+mapped = ingredientCompoundGraph.create_nodes_mapping()
 print(mapped.keys())
 
 # %%
