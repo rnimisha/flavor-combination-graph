@@ -1,6 +1,9 @@
 # %% imports
+import torch
+
 from create_graph import IngredientCompoundGraph
 from load_data import load_data
+from split_data import split_data
 
 # %% load data
 nodes_df, edges_df = load_data()
@@ -64,4 +67,11 @@ ingredientCompoundGraph2 = IngredientCompoundGraph(nodes_df, edges_df)
 graph = ingredientCompoundGraph2.create()
 # %%
 graph
+# %%
+train, val, test = split_data(graph)
+# %%
+train
+# %%
+torch.arange(start=0, end=20, dtype=torch.float).unsqueeze(1)
+
 # %%
