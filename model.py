@@ -1,33 +1,22 @@
 import torch
 import torch.nn.functional as F
+from sklearn.metrics import roc_auc_score
 from torch import Tensor
-from torch_geometric.nn import GCNConv
+from torch.nn import Dropout
+from torch_geometric.data import HeteroData
+from torch_geometric.nn import SAGEConv, to_hetero
+from torch_geometric.utils import negative_sampling
 
 
-class GNN(torch.nn.Module):
-    def __init__(self, hidden_channels: int):
+class GNNEncoder(torch.nn.Module):
+    def __init__(self, hidden_channels: int, out_channels: int, dropout=0.3):
         super().__init__()
+        self.conv1 = SAGEConv(hidden_channels, hidden_channels)
+        self.conv2 = SAGEConv(hidden_channels, out_channels)
+        self.dropout = Dropout(p=dropout)
 
-        self.conv1 = GCNConv(hidden_channels, hidden_channels)
-        self.conv2 = GCNConv(hidden_channels, hidden_channels)
-
-    def forward(self, x: Tensor, edge_index: Tensor, edge_weight: Tensor):
-        x = F.relu(self.conv1(x, edge_index, edge_weight))
-        x = self.conv2(x, edge_index, edge_weight)
+    def forward(self, x: Tensor, edge_index: Tensor) -> Tensor:
+        x = self.conv1(x, edge_index).relu()
+        x = self.dropout(x)
+        x = self.conv2(x, edge_index)
         return x
-
-
-class PairingClassifier(torch.nn.Module):
-    def forward(self, x_ing1: Tensor, x_ing2: Tensor, edge_label_index: Tensor):
-        edge_feat_ing1 = x_ing1[edge_label_index[0]]
-        edge_feat_ing2 = x_ing2[edge_label_index[1]]
-        return (edge_feat_ing1 * edge_feat_ing2).sum(dim=-1)
-
-
-class Model(torch.nn.Module):
-
-    def __init__(self):
-        super().__init__()
-
-    def forward():
-        pass
