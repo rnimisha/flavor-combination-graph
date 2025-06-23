@@ -11,6 +11,8 @@ class IngredientCompoundGraph:
         self.nodes_df = nodes_df
         self.edges_df = edges_df
         self.data = HeteroData()
+        self.id_to_name = {}
+        self.original_to_index = {}
 
     def create_nodes_mapping(self) -> Dict[str, Dict[int, int]]:
         node_types = self.nodes_df["node_type"].unique()
@@ -22,6 +24,13 @@ class IngredientCompoundGraph:
                 original_id: id
                 for id, original_id in enumerate(filtered_node_data["node_id"].unique())
             }
+            self.id_to_name[node_type] = {
+                original_id: name
+                for original_id, name in zip(
+                    filtered_node_data["node_id"], filtered_node_data["name"]
+                )
+            }
+            self.original_to_index[node_type] = mappings[node_type]
         return mappings
 
     def add_nodes(self, mappings: Dict[str, Dict[int, int]]):
@@ -29,6 +38,7 @@ class IngredientCompoundGraph:
             filtered_nodes = self.nodes_df[self.nodes_df["node_type"] == node_type]
             num_nodes = len(filtered_nodes)
             self.data[node_type].num_nodes = num_nodes
+            self.data[node_type].node_id = torch.arange(num_nodes)
 
     def add_edges(self, mappings: Dict[str, Dict[int, int]]) -> None:
         edge_types = self.edges_df["edge_type"].unique()
@@ -60,3 +70,9 @@ class IngredientCompoundGraph:
         self.add_nodes(mappings)
         self.add_edges(mappings)
         return self.data
+
+    def get_name_mapping(self, node_type="ingredient"):
+        return {
+            self.original_to_index[node_type][original_id]: name
+            for original_id, name in self.id_to_name[node_type].items()
+        }
