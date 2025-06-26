@@ -1,77 +1,45 @@
 # %% imports
+import os
+
 import torch
 
 from create_graph import IngredientCompoundGraph
 from load_data import load_data
-from split_data import split_data
+from model import PairingModel
+from similarity import recommend_pairs
 
-# %% load data
+# %%
 nodes_df, edges_df = load_data()
 
 # %%
-print(nodes_df.head(20))
-# %%
-print(edges_df.head())
-# %%
-print(nodes_df.node_type.value_counts())
-# %%
-print(edges_df.edge_type.value_counts())
-
-
-# %%
 ingredientCompoundGraph = IngredientCompoundGraph(nodes_df, edges_df)
-mapped = ingredientCompoundGraph.create_nodes_mapping()
-print(mapped.keys())
+data = ingredientCompoundGraph.create()
+idx_to_name = ingredientCompoundGraph.get_name_mapping(node_type="ingredient")
+# %%
+metapath_recipe = [("ingredient", "paired_with", "ingredient")]
+metapath_chemical = [
+    ("ingredient", "associated_with", "compound"),
+    ("compound", "rev_associated_with", "ingredient"),
+]
+# %%
+model = PairingModel(data, idx_to_name)
 
 # %%
-print(mapped["ingredient"])
+metapaths = [("ingredient", "paired_with", "ingredient")]
+recipe_model = model.create_model(metapaths, embedding_dim=128)
 # %%
-print(nodes_df.node_type.unique())
-# %%
-ingredients = nodes_df[nodes_df["node_type"] == "ingredient"]
-ingredients["node_id"].unique().shape
 
-compounds = nodes_df[nodes_df["node_type"] == "compound"]
-compounds["node_id"].unique().shape
+save_path = os.path.join("model", "recipe_model.pt")
 # %%
-print(len(mapped["ingredient"]))
-# %%
-print(ingredients["node_id"].unique().shape[0] == len(mapped["ingredient"]))
+model.train_model(recipe_model, save_path)
 
 # %%
-# %%
-print(compounds["node_id"].unique().shape[0] == len(mapped["compound"]))
+
+recipe_model.load_state_dict(torch.load(save_path))
+recommender = recipe_model
 
 # %%
-edges_df.head()
+a = recommend_pairs(recommender, "tomato", idx_to_name)
 # %%
-edges_types = edges_df["edge_type"].unique()
-print(edges_types)
-# %%
-filtered_ing_ing = edges_df[edges_df["edge_type"] == "ingr-ingr"]
-# %%
-filtered_ing_ing
-# %%
-import numpy as np
-
-mapped["ingredient"][np.int64(5063)]
-mapped["ingredient"][np.int64(6083)]
-
-# %%
-111355 * 2
-
-# %%
-ingredientCompoundGraph2 = IngredientCompoundGraph(nodes_df, edges_df)
-
-# %%
-graph = ingredientCompoundGraph2.create()
-# %%
-graph
-# %%
-train, val, test = split_data(graph)
-# %%
-train
-# %%
-torch.arange(start=0, end=20, dtype=torch.float).unsqueeze(1)
-
+a
 # %%
