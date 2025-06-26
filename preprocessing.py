@@ -22,7 +22,7 @@ metapath_chemical = [
     ("compound", "rev_associated_with", "ingredient"),
 ]
 # %%
-model = PairingModel(data, idx_to_name)
+model = PairingModel(data)
 
 # %%
 metapaths = [("ingredient", "paired_with", "ingredient")]

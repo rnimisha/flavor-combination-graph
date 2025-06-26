@@ -1,6 +1,3 @@
-import os
-from typing import List, Tuple
-
 import torch
 from torch_geometric.data import HeteroData
 from torch_geometric.nn import MetaPath2Vec
@@ -8,9 +5,8 @@ from tqdm import tqdm
 
 
 class PairingModel:
-    def __init__(self, data: HeteroData, idx_to_name: dict):
+    def __init__(self, data: HeteroData):
         self.data = data
-        self.idx_to_name = idx_to_name
 
     def train_model(
         self,
