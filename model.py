@@ -1,90 +1,51 @@
-from typing import Dict
+from typing import List, Tuple
 
 import torch
-from torch import Tensor
-from torch.nn import Dropout, Embedding, Module
 from torch_geometric.data import HeteroData
-from torch_geometric.nn import SAGEConv, to_hetero
+from torch_geometric.nn import MetaPath2Vec
+from tqdm import tqdm
 
 
-class GNNEncoder(Module):
-    def __init__(self, hidden_channels: int, out_channels: int, dropout: int = 0.3):
-        super().__init__()
-        self.conv1 = SAGEConv(hidden_channels, hidden_channels)
-        self.conv2 = SAGEConv(hidden_channels, out_channels)
-        self.dropout = Dropout(p=dropout)
+def generate_embeddings(
+    data: HeteroData,
+    metapath: List[Tuple[str, str, str]],
+    save_path: str,
+    embedding_dim: int = 300,
+    epochs: int = 20,
+    lr: float = 0.005,
+) -> None:
+    model = MetaPath2Vec(
+        edge_index_dict=data.edge_index_dict,
+        embedding_dim=embedding_dim,
+        metapath=metapath,
+        walk_length=60,
+        context_size=10,
+        walks_per_node=10,
+        num_negative_samples=10,
+        sparse=True,
+    )
 
-    def forward(self, x: Tensor, edge_index: Tensor) -> Tensor:
-        x = self.conv1(x, edge_index).relu()
-        x = self.dropout(x)
-        x = self.conv2(x, edge_index)
-        return x
+    loader = model.loader(batch_size=128, shuffle=True)
+    optimizer = torch.optim.SparseAdam(model.parameters(), lr=lr)
 
+    model.train()
 
-class PairClassifier(Module):
-    def __init__(self, hidden_channels: int):
-        super().__init__()
-        # Remove the self.classifier wrapper
-        self.layers = torch.nn.Sequential(
-            torch.nn.Linear(hidden_channels * 2, hidden_channels),
-            torch.nn.ReLU(),
-            torch.nn.Linear(hidden_channels, 1),
-            torch.nn.Sigmoid(),
-        )
+    best_loss = float("inf")
+    best_model_state = None
 
-    def forward(self, x_dict, edge_index):
-        src = x_dict["ingredient"][edge_index[0]]
-        dst = x_dict["ingredient"][edge_index[1]]
-        return self.layers(
-            torch.cat([src, dst], dim=-1)
-        )  # Changed from self.classifier to self.layers
+    for epoch in range(epochs):
+        total_loss = 0
+        for pos_rw, neg_rw in tqdm(loader, desc=f"Epoch {epoch+1}/{epochs}"):
+            optimizer.zero_grad()
+            loss = model.loss(pos_rw, neg_rw)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
 
+        avg_loss = total_loss / len(loader)
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
 
-class CompoundClassifier(Module):
-    def __init__(self, hidden_channels: int):
-        super().__init__()
-        # Remove the self.classifier wrapper
-        self.layers = torch.nn.Sequential(
-            torch.nn.Linear(hidden_channels * 2, hidden_channels),
-            torch.nn.ReLU(),
-            torch.nn.Linear(hidden_channels, 1),
-            torch.nn.Sigmoid(),
-        )
-
-    def forward(self, x_dict, edge_index):
-        src = x_dict["ingredient"][edge_index[0]]
-        dst = x_dict["compound"][edge_index[1]]
-        return self.layers(
-            torch.cat([src, dst], dim=-1)
-        )  # Changed from self.compound_classifier to self.layers
-
-
-class HeteroGNN(Module):
-    def __init__(self, hidden_channels: int, data: HeteroData, dropout: int = 0.3):
-        super().__init__()
-
-        self.ingredient_emb = Embedding(data["ingredient"].num_nodes, hidden_channels)
-        self.compound_emb = Embedding(data["compound"].num_nodes, hidden_channels)
-
-        self.gnn = to_hetero(
-            GNNEncoder(hidden_channels, hidden_channels, dropout),
-            data.metadata(),
-            aggr="mean",
-        )
-
-        self.pair_classifier = PairClassifier(hidden_channels)
-        self.compound_classifier = CompoundClassifier(hidden_channels)
-
-    def forward(self, data: HeteroData) -> Dict[str, Tensor]:
-        x_dict = {
-            "ingredient": self.ingredient_emb.weight,
-            "compound": self.compound_emb.weight,
-        }
-        x = self.gnn(x_dict, data.edge_index_dict)
-        return x
-
-    def predict_pair_links(self, x_dict, edge_index):
-        return self.pair_classifier(x_dict, edge_index)
-
-    def predict_compound_links(self, x_dict, edge_index):
-        return self.compound_classifier(x_dict, edge_index)
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+            best_model_state = model.state_dict().copy()
+            torch.save(best_model_state, save_path)
