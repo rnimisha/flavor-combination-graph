@@ -3,10 +3,10 @@ import os
 
 import torch
 
-from create_graph import IngredientCompoundGraph
-from load_data import load_data
 from model import PairingModel
-from similarity import recommend_pairs
+from src.create_graph import IngredientCompoundGraph
+from src.load_data import load_data
+from src.similarity import recommend_pairs
 
 # %%
 nodes_df, edges_df = load_data()
