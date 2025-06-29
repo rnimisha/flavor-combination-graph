@@ -6,7 +6,7 @@ import torch
 from src.create_graph import IngredientCompoundGraph
 from src.load_data import load_data
 from src.model import PairingModel
-from src.similarity import recommend_pairs
+from src.similarity import recommend_pairs, recommend_substitue
 
 # %%
 nodes_df, edges_df = load_data()
@@ -15,6 +15,7 @@ nodes_df, edges_df = load_data()
 ingredientCompoundGraph = IngredientCompoundGraph(nodes_df, edges_df)
 data = ingredientCompoundGraph.create()
 idx_to_name = ingredientCompoundGraph.get_name_mapping(node_type="ingredient")
+name_to_idx = {v: k for k, v in idx_to_name.items()}
 # %%
 metapath_recipe = [("ingredient", "paired_with", "ingredient")]
 metapath_chemical = [
@@ -53,7 +54,7 @@ recipe_model.load_state_dict(torch.load(save_path_recipe))
 recipe_recommender = recipe_model
 
 # %%
-a = recommend_pairs(recipe_recommender, "tomato", idx_to_name)
+a = recommend_pairs(recipe_recommender, "tomato", idx_to_name, name_to_idx)
 # %%
 a
 # %%
@@ -61,7 +62,7 @@ comp_ingr_model.load_state_dict(torch.load(save_path_substitution))
 subsitution_recommender = comp_ingr_model
 
 # %%
-a = recommend_pairs(comp_ingr_model, "onion", idx_to_name)
+a = recommend_pairs(comp_ingr_model, "onion", idx_to_name, name_to_idx)
 # %%
 a
 # %%
@@ -69,8 +70,12 @@ combined_model.load_state_dict(torch.load(save_path_combined))
 combined_recommender = combined_model
 
 # %%
-a = recommend_pairs(combined_model, "onion", idx_to_name)
+a = recommend_pairs(combined_model, "onion", idx_to_name, name_to_idx)
 
 # %%
 a
+# %%
+substitutes = recommend_substitue(data, "cheese", name_to_idx, idx_to_name)
+# %%
+substitutes
 # %%
