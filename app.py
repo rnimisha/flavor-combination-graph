@@ -36,3 +36,26 @@ def load_models():
             "recommender": recommender,
             "all_ingredients": list(name_to_idx.keys()),
         }
+
+
+models_data = load_models()
+
+st.title("Ingredient Pairing and Substitution")
+st.markdown("Discover new pairings and substitutions for recipes.")
+
+
+ingredient = st.selectbox(
+    "Search Ingredient:",
+    options=models_data["all_ingredients"],
+)
+
+
+model_type = st.radio(
+    "Recommendation Type:",
+    options=[
+        "Pairing Recommendation",
+        "Substitution Recommendation",
+    ],
+    index=0,
+    horizontal=True,
+)
