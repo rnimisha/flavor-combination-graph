@@ -6,7 +6,7 @@ import torch
 from src.create_graph import IngredientCompoundGraph
 from src.load_data import load_data
 from src.model import PairingModel
-from src.similarity import recommend_pairs
+from src.similarity import recommend_pairs, recommend_substitue
 
 st.markdown(
     """
@@ -128,4 +128,30 @@ if st.button("Get Recommendations", type="primary"):
                     )
 
             elif model_type == "Substitution Recommendation":
-                pass
+                result = recommend_substitue(
+                    models_data["data"],
+                    ingredient,
+                    models_data["name_to_idx"],
+                    models_data["idx_to_name"],
+                    5,
+                )
+
+                if result:
+                    st.subheader(f"Best substitutes for {ingredient.lower()}")
+
+                    for name, jaccard, shared in result:
+                        st.markdown(
+                            f"""
+                                <div class="recommendation-card">
+                                    <h4>{name}</h4>
+                                    <p>Flavor similarity: <span class="highlight">{jaccard:.3f}</span></p>
+                                    <p>Shared compounds: <span class="highlight">{shared}</span></p>
+                                </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
+                else:
+                    st.warning(
+                        f"No substitution recommendations found for {ingredient.lower()}"
+                    )
