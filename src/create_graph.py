@@ -39,6 +39,7 @@ class IngredientCompoundGraph:
             num_nodes = len(filtered_nodes)
             self.data[node_type].num_nodes = num_nodes
             self.data[node_type].node_id = torch.arange(num_nodes)
+            self.data[node_type].x = torch.eye(num_nodes, dtype=torch.float)
 
     def add_edges(self, mappings: Dict[str, Dict[int, int]]) -> None:
         edge_types = self.edges_df["edge_type"].unique()
