@@ -1,8 +1,8 @@
-# 🍽️ Ingredient Pairing and Substitution Recommender
+# 𓌉◯𓇋 Ingredient Pairing and Substitution Recommender
 
 The project provides a recommendation system for food ingredients, offering both pairing suggestions (what ingredients go well together) and substitution recommendations (similar ingredients that can replace each other in recipes).
 
-## Features
+## Features ‧₊˚ ⋅ 𓐐𓎩 ‧₊˚ ⋅
 
 ### Ingredient Pairing Recommendations
 
@@ -12,7 +12,7 @@ The project provides a recommendation system for food ingredients, offering both
 
 - Suggests substitute ingredients based on shared chemical compounds using Jaccard similarity.
 
-## Technical Approach
+## Technical Approach ‧₊˚ ⋅ 𓐐𓎩 ‧₊˚ ⋅
 
 ### Graph Architecture
 
@@ -28,7 +28,7 @@ The system models culinary relationships as a **heterogeneous graph** with:
 - `ingredient-ingredient` (`paired_with`): Direct pairing relationships from recipe co-occurrence
 - `ingredient-compound` (`associated_with`): Chemical composition relationships
 
-### Method
+## Method ‧₊˚ ⋅ 𓐐𓎩 ‧₊˚ ⋅
 
 1. **Graph Construction**: Build heterogeneous graph from ingredient pairing data and chemical composition
 2. **Embedding Learning**: Use **MetaPath2Vec** to learn dense vector representations that capture:
@@ -39,8 +39,27 @@ The system models culinary relationships as a **heterogeneous graph** with:
    - **Pairings**: Find ingredients with similar embeddings in the learned space
    - **Substitutions**: Calculate Jaccard similarity based on shared chemical compounds
 
-## Data Source
+## Data Source ‧₊˚ ⋅ 𓐐𓎩 ‧₊˚ ⋅
 
 This project utilizes data from the comprehensive **FlavorGraph** dataset:
 
 > Park, D.M., Kim, J., Park, J. et al. FlavorGraph: a large-scale food-chemical graph for generating food representations and recommending food pairings. _Sci Rep_ 11, 931 (2021). https://doi.org/10.1038/s41598-020-79422-8
+
+## UI Screenshots ‧₊˚ ⋅ 𓐐𓎩 ‧₊˚ ⋅
+
+![UI](https://raw.githubusercontent.com/rnimisha/flavor-combination-graph/main/images/pairing.png)
+
+## Installation ‧₊˚ ⋅ 𓐐𓎩 ‧₊˚ ⋅
+
+```bash
+  git clone https://github.com/rnimisha/flavor-combination-graph.git
+```
+
+```bash
+  cd flavor-combination-graph
+  pip install -r requirements.txt
+```
+
+```bash
+  streamlit run app.py
+```
